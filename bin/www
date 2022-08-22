@@ -4,8 +4,10 @@
  * Module dependencies.
  */
 const http = require('http');
-const config = require('../server/config')[process.env.NODE_ENV || 'development'];
+const config =
+  require('../server/config')[process.env.NODE_ENV || 'development'];
 const app = require('../server/app')(config);
+const db = require('../server/lib/db');
 
 // Helper functions
 
@@ -26,7 +28,6 @@ function normalizePort(val) {
   return false;
 }
 
-
 /**
  * Get port from environment and store in Express.
  */
@@ -38,13 +39,18 @@ app.set('port', port);
  */
 const server = http.createServer(app);
 
+db.connect(config.database.dsn)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    server.listen(port);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
 
-server.listen(port);
 server.on('listening', () => {
   const addr = server.address();
-  const bind = typeof addr === 'string'
-    ? `pipe ${addr}`
-    : `port ${addr.port}`;
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
   console.log(`Listening on ${bind}`);
 });
 
@@ -54,9 +60,7 @@ server.on('error', (error) => {
     throw error;
   }
 
-  const bind = typeof port === 'string'
-    ? `Pipe ${port}`
-    : `Port ${port}`;
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
