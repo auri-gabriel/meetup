@@ -43,18 +43,16 @@ module.exports = (params) => {
           email: req.body.email,
           password: req.body.password,
         });
-        if (req.file && req.file.storeFilename) {
-          user.avatar = req.file.storeFilename;
+        if (req.file && req.file.storedFilename) {
+          user.avatar = req.file.storedFilename;
         }
-
         const savedUser = await user.save();
 
         if (savedUser) return res.redirect('/users/registration?success=true');
-
-        return next(new Error('Failed to save user'));
+        return next(new Error('Failed to save user for unknown reasons'));
       } catch (err) {
-        if (req.file && req.file.storeFilename) {
-          await avatars.delete(req.file.storeFilename);
+        if (req.file && req.file.storedFilename) {
+          await avatars.delete(req.file.storedFilename);
         }
         return next(err);
       }
