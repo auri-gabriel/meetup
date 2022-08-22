@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node bin/www",
+    "start": "node bin/www | bunyan",
     "test": "npx mocha --exit --recursive test/"
   },
   "author": "",
@@ -12,6 +12,7 @@
   "dependencies": {
     "bcrypt": "^5.0.1",
     "body-parser": "^1.18.3",
+    "bunyan": "^1.8.15",
     "compression": "^1.7.4",
     "connect-mongo": "^2.0.3",
     "cookie-parser": "^1.4.6",

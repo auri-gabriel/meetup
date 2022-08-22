@@ -7,7 +7,11 @@ module.exports = (params) => {
   router.get('/', async (req, res) => {
     const speakerslist = await speakers.getList();
     const artwork = await speakers.getAllArtwork();
-    return res.render('speakers', { page: 'All Speakers', speakerslist, artwork });
+    return res.render('speakers', {
+      page: 'All Speakers',
+      speakerslist,
+      artwork,
+    });
   });
 
   router.get('/:name', async (req, res, next) => {
@@ -18,7 +22,9 @@ module.exports = (params) => {
     console.log(speaker);
     console.log(artwork);
     return res.render('speakers/detail', {
-      page: req.params.name, artwork, speaker,
+      page: req.params.name,
+      artwork,
+      speaker,
     });
   });
   return router;
