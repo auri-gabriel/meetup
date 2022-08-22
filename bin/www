@@ -4,12 +4,16 @@
  * Module dependencies.
  */
 const http = require('http');
+const cluster = require('cluster');
+const os = require('os');
 const config =
   require('../server/config')[process.env.NODE_ENV || 'development'];
 const app = require('../server/app')(config);
 const db = require('../server/lib/db');
 
 const log = config.log();
+
+const numCPUs = os.cpus().length;
 
 // Helper functions
 
@@ -41,14 +45,25 @@ app.set('port', port);
  */
 const server = http.createServer(app);
 
-db.connect(config.database.dsn)
-  .then(() => {
-    log.info('Connected to MongoDB');
-    server.listen(port);
-  })
-  .catch((err) => {
-    log.fatal(err);
+if (cluster.isMaster) {
+  log.info(`Master ${process.pid} is running`);
+  for (let i = 0; i < numCPUs; i += 1) {
+    cluster.fork();
+  }
+  cluster.on('exit', (worker) => {
+    log.fatal(`Worker ${worker.process.pid} just died`);
+    cluster.fork();
   });
+} else {
+  db.connect(config.database.dsn)
+    .then(() => {
+      log.info('Connected to MongoDB');
+      server.listen(port);
+    })
+    .catch((err) => {
+      log.fatal(err);
+    });
+}
 
 server.on('listening', () => {
   const addr = server.address();
