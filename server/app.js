@@ -4,6 +4,7 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const path = require('path');
+const compression = require('compression');
 const createError = require('http-errors');
 const bodyParser = require('body-parser');
 const routes = require('./routes');
@@ -14,6 +15,7 @@ const AvatarService = require('./services/AvatarService');
 
 module.exports = (config) => {
   const app = express();
+  app.use(compression());
   const speakers = new SpeakerService(config.data.speakers);
   const feedback = new FeedbackService(config.data.feedback);
   const avatars = new AvatarService(config.data.avatars);
