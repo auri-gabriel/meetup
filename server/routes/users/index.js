@@ -10,7 +10,9 @@ function redirectIfLoggedIn(req, res, next) {
   return next();
 }
 
-module.exports = () => {
+module.exports = (params) => {
+  const { avatars } = params;
+
   router.post(
     '/login',
     passport.authenticate('local', {
@@ -33,6 +35,7 @@ module.exports = () => {
   router.post(
     '/registration',
     middlewares.upload.single('avatar'),
+    middlewares.handleAvatar(avatars),
     async (req, res, next) => {
       try {
         const user = new UserModel({
@@ -40,12 +43,19 @@ module.exports = () => {
           email: req.body.email,
           password: req.body.password,
         });
+        if (req.file && req.file.storeFilename) {
+          user.avatar = req.file.storeFilename;
+        }
+
         const savedUser = await user.save();
 
         if (savedUser) return res.redirect('/users/registration?success=true');
 
         return next(new Error('Failed to save user'));
       } catch (err) {
+        if (req.file && req.file.storeFilename) {
+          await avatars.delete(req.file.storeFilename);
+        }
         return next(err);
       }
     }
